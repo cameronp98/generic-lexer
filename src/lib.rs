@@ -53,18 +53,18 @@ impl<'a> LexerInput<'a> {
 
     /// Retrieve the next character and increment the input position
     pub fn next(&mut self) -> Option<u8> {
-        if let Some(b) = self.peek() {
+        if let Some(byte) = self.peek() {
             self.pos += 1;
-            Some(b)
+            Some(byte)
         } else {
             None
         }
     }
 
     /// Call `self.next()` if the peeked character is identical to `b`
-    pub fn accept(&mut self, b: u8) -> bool {
+    pub fn accept(&mut self, byte: u8) -> bool {
         if let Some(actual) = self.peek() {
-            if actual == b {
+            if actual == byte {
                 self.next();
                 return true;
             }
@@ -73,8 +73,16 @@ impl<'a> LexerInput<'a> {
     }
 
     /// Accept the given byte and return `ok`, or else return `default`
-    fn accept_or<T>(&mut self, byte: u8, ok: T, default: T) -> T {
-        if self.accept(c) {
+    ///
+    /// This is useful for matching multi-character tokens:
+    /// ```rust
+    /// match byte {
+    ///     b'=' => input.accept_or(b'=', TokenKind::DoubleEquals, TokenKind::Equals),
+    ///     _ => {},
+    /// }
+    /// ```
+    pub fn accept_or<T>(&mut self, byte: u8, ok: T, default: T) -> T {
+        if self.accept(byte) {
             ok
         } else {
             default
@@ -146,21 +154,21 @@ impl<'a, M, T> Iterator  for Lexer<'a, M, T>
         // get start position and first character
         let start = self.input.pos;
         let byte = match self.input.next() {
-            Some(b) => b,
+            Some(byte) => byte,
             None => return None,
         };
 
         // match a token kind and mark the end of the token
         let kind = match self.matcher.try_match(byte, &mut self.input) {
-            Ok(k) => k,
-            Err(e) => return Some(Err(e)),
+            Ok(kind) => kind,
+            Err(err) => return Some(Err(err)),
         };
         let end = self.input.pos;
 
         // fetch the token bytes from `self.input` and convert to `&str`
         let text = match ::std::str::from_utf8(&self.input.bytes[start..end]) {
-            Ok(t) => t,
-            Err(e) => return Some(Err(format!("Error: Invalid UTF-8; error = {:?}", e)))
+            Ok(text) => text,
+            Err(err) => return Some(Err(format!("Error: Invalid UTF-8; error = {:?}", err)))
         };
 
         // create a `Token` wrapper and return it
