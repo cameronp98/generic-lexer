@@ -5,7 +5,7 @@
 A generic lexer in Rust using a simple match function or closure
 
 ```rust
-use generic_lexer::{Lexer, LexerInput};
+use generic_lexer::{Lexer, LexerInput, MatchError};
 
 #[derive(Debug)]
 enum TokenKind {
@@ -15,42 +15,42 @@ enum TokenKind {
 }
 
 fn lex_int(input: &mut LexerInput) -> TokenKind {
-    input.next_while(u8::is_ascii_digit);
-    if input.accept(b'.') {
+    input.next_while(char::is_ascii_digit);
+    if input.test('.') {
         return lex_float(input);
     }
     TokenKind::Int
 }
 
 fn lex_float(input: &mut LexerInput) -> TokenKind {
-    input.next_while(u8::is_ascii_digit);
+    input.next_while(char::is_ascii_digit);
     TokenKind::Float
 }
 
 fn lex_name(input: &mut LexerInput) -> TokenKind {
-    input.next_while(|&b| b == b'_' || b.is_ascii_alphabetic());
+    input.next_while(|&c| c == '_' || c.is_ascii_alphabetic());
     TokenKind::Name
 }
 
-fn lex(byte: u8, input: &mut LexerInput) -> Result<TokenKind, String> {
-    let kind = match byte {
-        b'+' => TokenKind::Plus,
-        b'-' => TokenKind::Minus,
-        b'*' => TokenKind::Star,
-        b'/' => TokenKind::Slash,
-        b';' => TokenKind::Semicolon,
-        b'=' => TokenKind::Equals,
+fn lex(first_char: char, input: &mut LexerInput) -> Result<TokenKind, MatchError> {
+    let kind = match first_char {
+        '+' => TokenKind::Plus,
+        '-' => TokenKind::Minus,
+        '*' => TokenKind::Star,
+        '/' => TokenKind::Slash,
+        ';' => TokenKind::Semicolon,
+        '=' => TokenKind::Equals,
 
-        b if b.is_ascii_digit() => lex_int(input),
-        b if b.is_ascii_alphabetic() => lex_name(input),
+        c if c.is_ascii_digit() => lex_int(input),
+        c if c.is_ascii_alphabetic() => lex_name(input),
 
-        _ => return Err(format!("Unexpected '{}'", char::from(byte)))
+        c => return Err(MatchError::Custom(format!("Unexpected '{}'", c)))
     };
 
     Ok(kind)
 }
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input = "a = 420 + 69 * 3.14;";
     let lexer = Lexer::new(&input, &lex, true);
     let tokens = lexer.collect::<Result<Vec<_>, _>>()?;
@@ -60,12 +60,38 @@ fn main() -> Result<(), String> {
 ```
 
 ```
-Token { kind: Name, text: "a" }
-Token { kind: Equals, text: "=" }
-Token { kind: Int, text: "420" }
-Token { kind: Plus, text: "+" }
-Token { kind: Int, text: "69" }
-Token { kind: Star, text: "*" }
-Token { kind: Float, text: "3.14" }
-Token { kind: Semicolon, text: ";" }
+[
+    Token {
+        kind: Name,
+        text: "a",
+    },
+    Token {
+        kind: Equals,
+        text: "=",
+    },
+    Token {
+        kind: Int,
+        text: "420",
+    },
+    Token {
+        kind: Plus,
+        text: "+",
+    },
+    Token {
+        kind: Int,
+        text: "69",
+    },
+    Token {
+        kind: Star,
+        text: "*",
+    },
+    Token {
+        kind: Float,
+        text: "3.14",
+    },
+    Token {
+        kind: Semicolon,
+        text: ";",
+    },
+]
 ```
