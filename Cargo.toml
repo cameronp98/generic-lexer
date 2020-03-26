@@ -1,5 +1,6 @@
 [package]
 name = "generic-lexer"
+description = "A generic lexer using a simple match function"
 version = "0.1.0"
 authors = ["Cameron Phillips <cameron0505@gmail.com>"]
 license = "MIT OR Apache-2.0"
