@@ -5,7 +5,7 @@
 A generic lexer in Rust using a simple match function or closure
 
 ```rust
-use generic_lexer::Lexer;
+use generic_lexer::{Lexer, LexerInput};
 
 #[derive(Debug)]
 enum TokenKind {
