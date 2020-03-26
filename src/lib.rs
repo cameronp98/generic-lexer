@@ -72,6 +72,15 @@ impl<'a> LexerInput<'a> {
         false
     }
 
+    /// Accept the given byte and return `ok`, or else return `default`
+    fn accept_or<T>(&mut self, byte: u8, ok: T, default: T) -> T {
+        if self.accept(c) {
+            ok
+        } else {
+            default
+        }
+    }
+
     /// Call `self.next()` while the peeked character fulfils `predicate`
     pub fn next_while<P>(&mut self, predicate: P)
         where P: Fn(&u8) -> bool {
