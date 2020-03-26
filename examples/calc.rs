@@ -44,13 +44,8 @@ fn lex(byte: u8, input: &mut LexerInput) -> Result<TokenKind, String> {
 
 fn main() -> Result<(), String> {
     let input = "a = 420 + 69 * 3.14;";
-
     let mut lexer = Lexer::new(&input, lex, true);
-
-    while let Some(token) = lexer.next() {
-        let token = token?;
-        println!("{:?}", token);
-    }
-
+    let tokens = lexer.collect::<Result<Vec<_>, _>>()?;
+    println!("{:#?}", tokens);
     Ok(())
 }
