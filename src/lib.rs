@@ -2,19 +2,19 @@ use std::marker::PhantomData;
 
 /// A token with a kind (usually an enum representing distinct token types) and its source text
 #[derive(Debug)]
-pub struct Token<'a, T> {
-    kind: T,
+pub struct Token<'a, K> {
+    kind: K,
     text: &'a str,
 }
 
-impl<'a, T> Token<'a, T> {
+impl<'a, K> Token<'a, K> {
     /// Create a new token with the given kind and text
-    pub fn new(kind: T, text: &'a str) -> Token<'a, T> {
+    pub fn new(kind: K, text: &'a str) -> Token<'a, K> {
         Token { kind, text }
     }
 
     /// Return the token's kind (usually an enum)
-    pub fn kind(&self) -> &T {
+    pub fn kind(&self) -> &K {
         &self.kind
     }
 
@@ -103,47 +103,41 @@ impl<'a> LexerInput<'a> {
 }
 
 /// The result returned from a `MatcherFn`
-pub type MatcherResult<T> = Result<T, String>;
+pub type MatcherResult<K> = Result<K, String>;
 
 /// A matcher fn matches a character (and and any following characters) and returns a `T`
 /// to indicate the kind of token (see `Token`)
-pub trait MatcherFn<T> {
-    fn try_match(&mut self, first_char: u8, input: &mut LexerInput) -> MatcherResult<T>;
+pub trait MatcherFn<K> {
+    fn try_match(&self, first_char: u8, input: &mut LexerInput) -> MatcherResult<K>;
 }
 
-impl<T, F> MatcherFn<T> for F
-    where F: Fn(u8, &mut LexerInput) -> MatcherResult<T> {
+impl<K, F> MatcherFn<K> for F
+    where F: Fn(u8, &mut LexerInput) -> MatcherResult<K> {
 
-    fn try_match(&mut self, first_char: u8, input: &mut LexerInput) -> MatcherResult<T> {
+    fn try_match(&self, first_char: u8, input: &mut LexerInput) -> MatcherResult<K> {
         (*self)(first_char, input)
     }
 }
 
 /// A lexer splits a source string into tokens using the given `MatcherFn`
-pub struct Lexer<'a, F, T>
-    where F: MatcherFn<T> {
+pub struct Lexer<'a, K> {
     input: LexerInput<'a>,
-    matcher: F,
+    matcher: &'a dyn MatcherFn<K>,
     skip_whitespace: bool,
-    matcher_t: PhantomData<T>,
 }
 
-impl<'a, M, T> Lexer<'a, M, T>
-    where M: MatcherFn<T> {
-    pub fn new(input: &'a str, matcher: M, skip_whitespace: bool) -> Lexer<'a, M, T> {
+impl<'a, K> Lexer<'a, K> {
+    pub fn new(input: &'a str, matcher: &'a dyn MatcherFn<K>, skip_whitespace: bool) -> Lexer<'a, K> {
         Lexer {
             input: LexerInput::new(input),
             matcher,
             skip_whitespace,
-            matcher_t: PhantomData::default(),
         }
     }
 }
 
-impl<'a, M, T> Iterator  for Lexer<'a, M, T>
-    where M: MatcherFn<T> {
-
-    type Item = MatcherResult<Token<'a, T>>;
+impl<'a, K> Iterator  for Lexer<'a, K> {
+    type Item = MatcherResult<Token<'a, K>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // skip whitespace
