@@ -1,11 +1,13 @@
 [package]
 name = "generic-lexer"
-description = "A generic lexer using a simple match function"
 version = "0.1.0"
 authors = ["Cameron Phillips <cameron0505@gmail.com>"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/cameronp98/generic-lexer.git"
 edition = "2018"
+readme = "README.md"
+description = "A generic lexer using a simple match function"
+repository = "https://github.com/cameronp98/generic-lexer.git"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
