@@ -1,4 +1,7 @@
 # generic-lexer
+![Crates.io](https://img.shields.io/crates/v/generic-lexer)
+![Crates.io](https://img.shields.io/crates/l/generic-lexer)
+
 A generic lexer in Rust using a simple match function or closure
 
 ```rust
