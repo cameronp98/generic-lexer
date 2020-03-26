@@ -15,20 +15,20 @@ enum TokenKind {
 }
 
 fn lex_int(input: &mut LexerInput) -> TokenKind {
-    input.next_while(char::is_ascii_digit);
-    if input.test('.') {
+    input.accept_while(char::is_ascii_digit);
+    if let Some(_) = input.accept(|c| *c == '.') {
         return lex_float(input);
     }
     TokenKind::Int
 }
 
 fn lex_float(input: &mut LexerInput) -> TokenKind {
-    input.next_while(char::is_ascii_digit);
+    input.accept_while(char::is_ascii_digit);
     TokenKind::Float
 }
 
 fn lex_name(input: &mut LexerInput) -> TokenKind {
-    input.next_while(|&c| c == '_' || c.is_ascii_alphabetic());
+    input.accept_while(|c| *c == '_' || c.is_ascii_alphabetic());
     TokenKind::Name
 }
 
@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#?}", tokens);
     Ok(())
 }
+
 ```
 
 ```
