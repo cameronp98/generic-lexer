@@ -36,7 +36,8 @@ fn lex(byte: u8, input: &mut LexerInput) -> Result<TokenKind, String> {
 
         b if b.is_ascii_digit() => lex_int(input),
         b if b.is_ascii_alphabetic() => lex_name(input),
-        _ => return Err(format!("Unknown byte {}", char::from(byte)))
+
+        _ => return Err(format!("Unexpected '{}'", char::from(byte)))
     };
 
     Ok(kind)

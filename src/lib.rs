@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 /// A token with a kind (usually an enum representing distinct token types) and its source text
 #[derive(Debug)]
 pub struct Token<'a, K> {

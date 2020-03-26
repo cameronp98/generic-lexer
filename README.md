@@ -43,7 +43,8 @@ fn lex(byte: u8, input: &mut LexerInput) -> Result<TokenKind, String> {
 
         b if b.is_ascii_digit() => lex_int(input),
         b if b.is_ascii_alphabetic() => lex_name(input),
-        _ => return Err(format!("Unknown byte {}", char::from(byte)))
+
+        _ => return Err(format!("Unexpected '{}'", char::from(byte)))
     };
 
     Ok(kind)
@@ -51,14 +52,9 @@ fn lex(byte: u8, input: &mut LexerInput) -> Result<TokenKind, String> {
 
 fn main() -> Result<(), String> {
     let input = "a = 420 + 69 * 3.14;";
-
-    let mut lexer = Lexer::new(&input, lex, true);
-
-    while let Some(token) = lexer.next() {
-        let token = token?;
-        println!("{:?}", token);
-    }
-
+    let lexer = Lexer::new(&input, &lex, true);
+    let tokens = lexer.collect::<Result<Vec<_>, _>>()?;
+    println!("{:#?}", tokens);
     Ok(())
 }
 ```
