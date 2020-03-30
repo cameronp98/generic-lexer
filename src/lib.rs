@@ -1,6 +1,6 @@
 mod input;
 
-pub use input::LexerInput;
+pub use input::BufferedInput;
 
 use std::error::Error;
 use std::fmt;
@@ -55,20 +55,22 @@ pub type MatchResult<T> = Result<T, MatchError>;
 
 /// A matcher fn matches a character (and and any following characters) and returns a `T`
 /// to indicate the kind of token (see `Token`)
+///
+/// `input` is always fresh (i.e. its buffer is empty)
 pub trait Matcher<K> {
-    fn try_match(&self, first_char: char, input: &mut LexerInput) -> MatchResult<K>;
+    fn try_match(&self, first_char: char, input: &mut BufferedInput) -> MatchResult<K>;
 }
 
 impl<F, K> Matcher<K> for F
-    where F: Fn(char, &mut LexerInput) -> MatchResult<K> {
-    fn try_match(&self, first_char: char, input: &mut LexerInput) -> MatchResult<K> {
+    where F: Fn(char, &mut BufferedInput) -> MatchResult<K> {
+    fn try_match(&self, first_char: char, input: &mut BufferedInput) -> MatchResult<K> {
         (*self)(first_char, input)
     }
 }
 
 /// A lexer splits a source string into tokens using the given `MatcherFn`
 pub struct Lexer<'a, K> {
-    input: LexerInput<'a>,
+    input: BufferedInput<'a>,
     matcher: &'a dyn Matcher<K>,
     skip_whitespace: bool,
 }
@@ -76,7 +78,7 @@ pub struct Lexer<'a, K> {
 impl<'a, K> Lexer<'a, K> {
     pub fn new(input: &'a str, matcher: &'a dyn Matcher<K>, skip_whitespace: bool) -> Lexer<'a, K> {
         Lexer {
-            input: LexerInput::new(input),
+            input: BufferedInput::new(input),
             matcher,
             skip_whitespace,
         }
@@ -93,7 +95,7 @@ impl<'a, K> Iterator  for Lexer<'a, K> {
         }
 
         // get first character
-        let first_char = match self.input.next() {
+        let first_char = match self.input.accept() {
             Some(byte) => byte,
             None => return None,
         };
