@@ -5,7 +5,7 @@
 A generic lexer in Rust using a simple match function or closure
 
 ```rust
-use generic_lexer::{Lexer, LexerInput, MatchError};
+use generic_lexer::{Lexer, BufferedInput, MatchError};
 
 #[derive(Debug)]
 enum TokenKind {
@@ -14,25 +14,25 @@ enum TokenKind {
     Plus, Minus, Star, Slash, Semicolon, Equals,
 }
 
-fn lex_int(input: &mut LexerInput) -> TokenKind {
+fn lex_int(input: &mut BufferedInput) -> TokenKind {
     input.accept_while(char::is_ascii_digit);
-    if let Some(_) = input.accept(|c| *c == '.') {
+    if let Some(_) = input.accept_if(|c| *c == '.') {
         return lex_float(input);
     }
     TokenKind::Int
 }
 
-fn lex_float(input: &mut LexerInput) -> TokenKind {
+fn lex_float(input: &mut BufferedInput) -> TokenKind {
     input.accept_while(char::is_ascii_digit);
     TokenKind::Float
 }
 
-fn lex_name(input: &mut LexerInput) -> TokenKind {
+fn lex_name(input: &mut BufferedInput) -> TokenKind {
     input.accept_while(|c| *c == '_' || c.is_ascii_alphabetic());
     TokenKind::Name
 }
 
-fn lex(first_char: char, input: &mut LexerInput) -> Result<TokenKind, MatchError> {
+fn lex(first_char: char, input: &mut BufferedInput) -> Result<TokenKind, MatchError> {
     let kind = match first_char {
         '+' => TokenKind::Plus,
         '-' => TokenKind::Minus,
@@ -44,7 +44,7 @@ fn lex(first_char: char, input: &mut LexerInput) -> Result<TokenKind, MatchError
         c if c.is_ascii_digit() => lex_int(input),
         c if c.is_ascii_alphabetic() => lex_name(input),
 
-        c => return Err(MatchError::Custom(format!("Unexpected '{}'", c)))
+        c => return Err(MatchError::Unexpected(c))
     };
 
     Ok(kind)
@@ -57,7 +57,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#?}", tokens);
     Ok(())
 }
-
 ```
 
 ```

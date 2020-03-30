@@ -37,7 +37,7 @@ fn lex(first_char: char, input: &mut BufferedInput) -> Result<TokenKind, MatchEr
         c if c.is_ascii_digit() => lex_int(input),
         c if c.is_ascii_alphabetic() => lex_name(input),
 
-        c => return Err(MatchError::Custom(format!("Unexpected '{}'", c)))
+        c => return Err(MatchError::Unexpected(c))
     };
 
     Ok(kind)
